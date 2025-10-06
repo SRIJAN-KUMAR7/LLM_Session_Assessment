@@ -15,6 +15,7 @@ export type OneLinerData = {
     question: string;
     keywords: string[];
     caseSensitive?: boolean;
+    answerKey:string;
     marks?: number;
 };
 
@@ -25,6 +26,7 @@ export type FillBlankData = {
     sentence: string;
     blank: string;
     acceptable: string[];
+    answerKey:string;
     marks?: number;
 };
 
