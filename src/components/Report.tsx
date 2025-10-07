@@ -318,7 +318,7 @@ useEffect(() => {
             <ResponsiveContainer>
               <PieChart>
                 <Pie data={questionTypeDistribution} cx="50%" cy="50%" labelLine={false} outerRadius={80} fill="#8884d8" dataKey="value">
-                  {questionTypeDistribution.map((entry, index) => (
+                  {questionTypeDistribution.map((_entry, index) => (
                     <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
                   ))}
                 </Pie>
