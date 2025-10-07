@@ -1,3 +1,4 @@
+
 import type { QuestionUnion, ScorePayload } from '../types';
 
 export interface TopicMetric {
@@ -8,74 +9,55 @@ export interface TopicMetric {
   evidence: { q: string; given: string; feedback: string }[];
 }
 
-/**
- * Build metrics per topic
- */
 export function buildMetrics(
   questions: QuestionUnion[],
   scores: Record<string, ScorePayload>
 ): TopicMetric[] {
   const map = new Map<string, TopicMetric>();
 
-  questions.forEach((q) => {
+  for (const q of questions) {
     const s = scores[q.id];
-    if (!s) return;
+    if (!s) {
+      console.debug(`[METRICS] missing score for q=${q.id}`);
+      continue;
+    }
+    const curr =
+      map.get(q.topic) ??
+      { topic: q.topic, totalQs: 0, correct: 0, percentage: 0, evidence: [] };
 
-    const curr = map.get(q.topic) ?? {
-      topic: q.topic,
-      totalQs: 0,
-      correct: 0,
-      percentage: 0,
-      evidence: [],
-    };
+    curr.totalQs += 1;
+    if (s.correct) curr.correct += 1;
 
-    curr.totalQs++;
-    if (s.correct) curr.correct++;
-
-    // Decide question text based on type
-    const qText =
-      q.type === 'mcq' || q.type === 'oneLiner' ? q.question : q.sentence;
-
-    curr.evidence.push({
-      q: qText,
-      given: s.given,
-      feedback: s.feedback ?? '',
-    });
-
+    const qText = q.type === 'mcq' || q.type === 'oneLiner' ? q.question : q.sentence;
+    curr.evidence.push({ q: qText, given: s.given, feedback: s.feedback ?? '' });
     map.set(q.topic, curr);
-  });
+  }
 
-  return Array.from(map.values()).map((m) => ({
+  const metrics = Array.from(map.values()).map((m) => ({
     ...m,
-    percentage: Math.round((m.correct / m.totalQs) * 100),
+    percentage: m.totalQs ? Math.round((m.correct / m.totalQs) * 100) : 0,
   }));
+
+  console.debug('[METRICS] topic breakdown:', metrics);
+  return metrics;
 }
 
-/**
- * Overall score across all topics
- */
 export function overallScore(metrics: TopicMetric[]): number {
-  const total = metrics.reduce((s, m) => s + m.percentage, 0);
-  return metrics.length ? Math.round(total / metrics.length) : 0;
+  if (!metrics.length) return 0;
+  const total = metrics.reduce((acc, m) => acc + m.percentage, 0);
+  const overall = Math.round(total / metrics.length);
+  console.debug('[METRICS] overall:', overall);
+  return overall;
 }
 
-/**
- * Weak topics (<60%)
- */
 export function weakness(metrics: TopicMetric[]): string[] {
   return metrics.filter((m) => m.percentage < 60).map((m) => m.topic);
 }
 
-/**
- * Strong topics (>=80%)
- */
 export function strength(metrics: TopicMetric[]): string[] {
   return metrics.filter((m) => m.percentage >= 80).map((m) => m.topic);
 }
 
-/**
- * Accuracy per question type
- */
 export function typeAccuracy(
   questions: QuestionUnion[],
   scores: Record<string, ScorePayload>
@@ -86,10 +68,9 @@ export function typeAccuracy(
     fillBlank: { total: 0, correct: 0 },
   };
 
-  questions.forEach((q) => {
+  for (const q of questions) {
     const s = scores[q.id];
-    if (!s) return;
-
+    if (!s) continue;
     if (q.type === 'mcq') {
       summary.mcq.total++;
       if (s.correct) summary.mcq.correct++;
@@ -100,14 +81,14 @@ export function typeAccuracy(
       summary.fillBlank.total++;
       if (s.correct) summary.fillBlank.correct++;
     }
-  });
+  }
 
-  const percent = (correct: number, total: number) =>
-    total ? Math.round((correct / total) * 100) : 0;
-
-  return {
-    mcq: percent(summary.mcq.correct, summary.mcq.total),
-    oneLiner: percent(summary.oneLiner.correct, summary.oneLiner.total),
-    fillBlank: percent(summary.fillBlank.correct, summary.fillBlank.total),
+  const pct = (c: number, t: number) => (t ? Math.round((c / t) * 100) : 0);
+  const result = {
+    mcq: pct(summary.mcq.correct, summary.mcq.total),
+    oneLiner: pct(summary.oneLiner.correct, summary.oneLiner.total),
+    fillBlank: pct(summary.fillBlank.correct, summary.fillBlank.total),
   };
+  console.debug('[METRICS] type accuracy:', { summary, result });
+  return result;
 }

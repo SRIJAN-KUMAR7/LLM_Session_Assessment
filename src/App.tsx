@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { useQuestionGen } from './hooks/useQuestionGen';
 import { QuestionFactory } from './components/QuestionFactory';
 import type { ScorePayload } from './types';
-import { Report } from './components/Report';
+
 import { motion, AnimatePresence } from 'framer-motion';
+import ReportUI from './components/Report';
 
 function App() {
   const { run, questions, loading, error } = useQuestionGen();
@@ -127,7 +128,7 @@ function App() {
         {/* Mini Report */}
         {answered === totalQ && totalQ > 0 && (
           <div className="mt-8">
-            <Report questions={questions} scores={scores} candidateName="Candidate" />
+            <ReportUI questions={questions} scores={scores} candidateName="Candidate" />
           </div>
         )}
       </section>
