@@ -9,6 +9,7 @@ export type MCQData = {
 };
 
 export type OneLinerData = {
+    acceptedAnswers: string[];
     type: 'oneLiner';
     id: string;
     topic: string;
@@ -20,6 +21,8 @@ export type OneLinerData = {
 };
 
 export type FillBlankData = {
+    correctAnswer: string;
+    caseSensitive: unknown;
     type: 'fillBlank';
     id: string;
     topic: string;
@@ -33,9 +36,25 @@ export type FillBlankData = {
 export type QuestionUnion = MCQData | OneLinerData | FillBlankData;
 
 export type ScorePayload = {
+    llmConfirmed: any;
     questionId: string;
-    given: string;
+    answer: string;
     correct: boolean;
     score: number;
     feedback?: string;
 };
+
+
+
+export interface GeminiResponse {
+  candidates?: GeminiCandidate[];
+  output?: any[];
+  text?: string;
+}
+
+export interface GeminiCandidate {
+  content?: {
+    parts?: { text?: string }[];
+  }[];
+  output?: any[];
+}

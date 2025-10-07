@@ -14,6 +14,7 @@ export function useQuestionGen() {
     try {
       const text = await pdfToText(file);
       const qs = await generateQuestions(text);
+      console.log({...qs});
       setQuestions(qs);
     } catch (e: any) {
       setError(e.message || 'Generation failed');

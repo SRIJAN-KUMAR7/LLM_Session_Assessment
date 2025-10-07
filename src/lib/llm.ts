@@ -1,3 +1,4 @@
+
 const API_KEY = import.meta.env.VITE_GEMINI_KEY;
 
 export async function askGemini(prompt: string): Promise<string> {
@@ -19,7 +20,8 @@ export async function askGemini(prompt: string): Promise<string> {
       }),
     },
   );
-  if (!res.ok) throw new Error('Gemini HTTP ' + res.status);
+ 
+  if (!res.ok) throw new Error('Gemini HTTP ' + res.status + res);
   const json = await res.json();
   return json.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
 }
